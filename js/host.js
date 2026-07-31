@@ -34,6 +34,9 @@
   var finalRanks = null, revealedCount = 0;
   var shuffle = null;        // {order: [원본 문항 인덱스...], choices: [문항별 선지 순열]}
 
+  // 이번 게임에서 진행할 문항 수 (셔플 order 길이 기준 — ?limit=N으로 제한 가능)
+  function qTotal() { return shuffle ? shuffle.order.length : quiz.questions.length; }
+
   // 표시 인덱스 → 원본 문항 + 선지 매핑
   function dispQ(i) {
     var oi = shuffle ? shuffle.order[i] : i;
@@ -83,6 +86,8 @@
     pin = window.GameCore.genPin();
     qIndex = -1;
     shuffle = window.GameCore.makeShuffle(quiz);   // 게임마다 문항·선지 순서 새로 섞음
+    var limit = parseInt(new URLSearchParams(location.search).get('limit'), 10);
+    if (limit > 0) shuffle.order = shuffle.order.slice(0, limit);   // 테스트/짧은 게임용
     getDb().ref('rooms/' + pin).set({
       meta: { quizId: quizId, state: 'lobby', qIndex: -1, createdAt: firebase.database.ServerValue.TIMESTAMP },
       shuffle: shuffle
@@ -147,7 +152,7 @@
   function renderQuestion() {
     var d = dispQ(qIndex), q = d.q;
     show('scr-question');
-    $('q-num').textContent = 'Q' + (qIndex + 1) + ' / ' + quiz.questions.length;
+    $('q-num').textContent = 'Q' + (qIndex + 1) + ' / ' + qTotal();
     if (q.image) { $('q-image').style.display = 'block'; $('q-image').querySelector('img').src = q.image; }
     else $('q-image').style.display = 'none';
     $('q-prompt').textContent = q.prompt;
@@ -251,9 +256,9 @@
     $('rv-top5').innerHTML = top5.map(function (r, i) {
       return '<div class="row"><span><span class="r">' + (i + 1) + '위</span>' + esc(r.nick) + '</span><span>' + r.score + '점</span></div>';
     }).join('');
-    $('btn-next').textContent = qIndex + 1 < quiz.questions.length ? '다음 문제 ▶' : '🏆 순위 발표';
+    $('btn-next').textContent = qIndex + 1 < qTotal() ? '다음 문제 ▶' : '🏆 순위 발표';
     $('btn-next').onclick = function () {
-      if (qIndex + 1 < quiz.questions.length) advance(qIndex + 1);
+      if (qIndex + 1 < qTotal()) advance(qIndex + 1);
       else enterPodium(false);
     };
   }

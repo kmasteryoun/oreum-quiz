@@ -122,7 +122,7 @@
     var d = dispQ(meta.qIndex), q = d.q;
     if (!q) return;
     show('scr-question');
-    $('q-num').textContent = 'Q' + (meta.qIndex + 1) + ' / ' + quiz.questions.length;
+    $('q-num').textContent = 'Q' + (meta.qIndex + 1) + ' / ' + (shuffle ? shuffle.order.length : quiz.questions.length);
     if (q.image) {
       $('q-image').style.display = 'block';
       $('q-image').querySelector('img').src = q.image;
