@@ -9,6 +9,6 @@ window.CONFIG = {
     messagingSenderId: "278618342832",
     appId: "1:278618342832:web:0569d2a99bca0a552d4275"
   },
-  // Apps Script 웹앱 배포 URL (Task 7)
-  sheetWebhook: ''
+  // Apps Script 웹앱 배포 URL
+  sheetWebhook: 'https://script.google.com/macros/s/AKfycbx4wMq_cZzH3XKeyjxeEGmvvL_cpnMbL3YXiH_Mp-Lsh2f89pS8RyM3F6-TfoHsOIH7/exec'
 };
