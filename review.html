@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>[오름] 퀴즈 배틀 — 문항 검수</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Malgun Gothic', sans-serif; background: #f4f6f8; color: #222; padding: 24px; }
+  h1 { margin-bottom: 8px; }
+  .sub { color: #666; margin-bottom: 24px; }
+  nav button { padding: 10px 18px; margin-right: 8px; border: 1px solid #ccc; background: #fff; border-radius: 8px; cursor: pointer; font-size: 15px; }
+  nav button.on { background: #2b6e4f; color: #fff; border-color: #2b6e4f; }
+  .stats { margin: 16px 0; color: #444; }
+  .card { background: #fff; border-radius: 10px; padding: 18px 20px; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  .card img { max-height: 70px; display: block; margin-bottom: 10px; }
+  .qid { font-size: 12px; color: #999; }
+  .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+  .badge.short { background: #e3f0ff; color: #1a5fb4; }
+  .badge.hapdap { background: #fdf0e0; color: #b4691a; }
+  .badge.mc { background: #e8f5e9; color: #2b6e4f; }
+  .prompt { font-weight: bold; margin: 8px 0; white-space: pre-line; }
+  ol.choices { margin: 6px 0 10px 24px; }
+  ol.choices li { padding: 2px 0; }
+  ol.choices li.ans { color: #2b6e4f; font-weight: bold; }
+  ol.choices li.ans::after { content: '  ← 정답'; font-size: 12px; }
+  .orig { font-size: 13px; color: #777; border-top: 1px dashed #ddd; padding-top: 8px; margin-top: 8px; white-space: pre-line; }
+</style>
+</head>
+<body>
+<h1>[오름] 복습 퀴즈 배틀 — 문항 검수</h1>
+<p class="sub">단답형→4지선다 / 복수선택→합답형 변환 결과입니다. 정답 표시와 오답 선지가 적절한지 확인해 주세요.</p>
+<nav id="nav"></nav>
+<div class="stats" id="stats"></div>
+<div id="list"></div>
+
+<script src="data/hunmin.js"></script>
+<script src="data/yongbi.js"></script>
+<script src="data/sohak.js"></script>
+<script src="data/raw-hunmin.js"></script>
+<script src="data/raw-yongbi.js"></script>
+<script src="data/raw-sohak.js"></script>
+<script>
+var SRC_LABEL = { short: '단답형→4지선다', hapdap: '복수선택→합답형', mc: '원본 유지(단일정답)' };
+
+function origInfo(rawItem) {
+  if (!rawItem) return '(원본 매칭 없음 — 확인 필요)';
+  var out = '원본(' + (rawItem.type === 'short' ? '단답형' : '복수선택') + '): ' + rawItem.title;
+  if (rawItem.grading && rawItem.grading[1]) {
+    var answers = rawItem.grading[1].map(function(a){ return a[0]; });
+    out += '\n원본 정답: ' + answers.join(' / ');
+  } else {
+    out += '\n원본 정답: (폼에 미설정!)';
+  }
+  return out;
+}
+
+function render(quizId) {
+  var quiz = window.QUIZZES[quizId];
+  var rawQ = window.RAW[quizId].items.filter(function(it){ return it.type === 'short' || it.type === 'check'; }).slice(1);
+  var html = '';
+  quiz.questions.forEach(function(q, idx){
+    var raw = rawQ[idx];
+    html += '<div class="card">'
+      + '<div class="qid">' + q.id + ' <span class="badge ' + q.src + '">' + SRC_LABEL[q.src] + '</span></div>'
+      + (q.image ? '<img src="' + q.image + '">' : '')
+      + '<div class="prompt">' + (idx + 1) + '. ' + q.prompt.replace(/</g, '&lt;') + '</div>'
+      + '<ol class="choices">'
+      + q.choices.map(function(c, i){ return '<li class="' + (i === q.answer ? 'ans' : '') + '">' + c.replace(/</g, '&lt;') + '</li>'; }).join('')
+      + '</ol>'
+      + '<div class="orig">' + origInfo(raw).replace(/</g, '&lt;') + '</div>'
+      + '</div>';
+  });
+  document.getElementById('list').innerHTML = html;
+  document.getElementById('stats').textContent = quiz.title + ' — 총 ' + quiz.questions.length + '문항 (원본 문항 ' + rawQ.length + '개)';
+  document.querySelectorAll('nav button').forEach(function(b){ b.classList.toggle('on', b.dataset.q === quizId); });
+}
+
+var nav = document.getElementById('nav');
+['hunmin', 'yongbi', 'sohak'].forEach(function(id){
+  var b = document.createElement('button');
+  b.textContent = window.QUIZZES[id].title;
+  b.dataset.q = id;
+  b.onclick = function(){ render(id); };
+  nav.appendChild(b);
+});
+render('hunmin');
+</script>
+</body>
+</html>
