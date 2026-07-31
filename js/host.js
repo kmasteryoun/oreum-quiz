@@ -32,6 +32,15 @@
   var answersRef = null, answersCache = {};
   var timerIv = null, questionEnded = false;
   var finalRanks = null, revealedCount = 0;
+  var shuffle = null;        // {order: [원본 문항 인덱스...], choices: [문항별 선지 순열]}
+
+  // 표시 인덱스 → 원본 문항 + 선지 매핑
+  function dispQ(i) {
+    var oi = shuffle ? shuffle.order[i] : i;
+    var q = quiz.questions[oi];
+    var map = shuffle ? shuffle.choices[oi] : q.choices.map(function (_, x) { return x; });
+    return { oi: oi, q: q, map: map };
+  }
 
   // ── 퀴즈 선택 화면 ──
   ['hunmin', 'yongbi', 'sohak'].forEach(function (id) {
@@ -55,11 +64,14 @@
           pin = savedRoom.pin;
           quiz = window.QUIZZES[m.quizId];
           qIndex = m.qIndex;
-          attachRoom();
-          if (m.state === 'lobby') enterLobby();
-          else if (m.state === 'question') { renderQuestion(); watchAnswers(); }
-          else if (m.state === 'reveal') restoreReveal();
-          else if (m.state === 'podium') enterPodium(true);
+          getDb().ref('rooms/' + pin + '/shuffle').once('value').then(function (ss) {
+            shuffle = ss.val();
+            attachRoom();
+            if (m.state === 'lobby') enterLobby();
+            else if (m.state === 'question') { renderQuestion(); watchAnswers(); }
+            else if (m.state === 'reveal') restoreReveal();
+            else if (m.state === 'podium') enterPodium(true);
+          });
         });
       }
     });
@@ -70,8 +82,10 @@
     quiz = window.QUIZZES[quizId];
     pin = window.GameCore.genPin();
     qIndex = -1;
+    shuffle = window.GameCore.makeShuffle(quiz);   // 게임마다 문항·선지 순서 새로 섞음
     getDb().ref('rooms/' + pin).set({
-      meta: { quizId: quizId, state: 'lobby', qIndex: -1, createdAt: firebase.database.ServerValue.TIMESTAMP }
+      meta: { quizId: quizId, state: 'lobby', qIndex: -1, createdAt: firebase.database.ServerValue.TIMESTAMP },
+      shuffle: shuffle
     }).then(function () {
       localStorage.setItem('oq_host_room', JSON.stringify({ pin: pin, quizId: quizId }));
       attachRoom();
@@ -90,9 +104,19 @@
   // ── 대기실 ──
   function enterLobby() {
     show('scr-lobby');
-    $('lobby-url').textContent = location.host + location.pathname.replace(/host\.html$/, '');
+    var joinPath = location.pathname.replace(/host\.html$/, '');
+    $('lobby-url').textContent = location.host + joinPath;
     $('lobby-pin').textContent = pin;
     $('lobby-quiz').textContent = quiz.title + ' · ' + quiz.questions.length + '문항';
+    // QR: 찍으면 PIN이 미리 입력된 입장 페이지로
+    var qrEl = $('lobby-qr');
+    qrEl.innerHTML = '';
+    if (window.QRCode) {
+      new QRCode(qrEl, {
+        text: location.origin + joinPath + '?pin=' + pin,
+        width: 180, height: 180, correctLevel: QRCode.CorrectLevel.M
+      });
+    }
     renderLobbyPlayers();
     $('btn-start').onclick = function () { advance(0); };
   }
@@ -110,7 +134,7 @@
     qIndex = idx;
     questionEnded = false;
     answersCache = {};
-    var q = quiz.questions[qIndex];
+    var q = dispQ(qIndex).q;
     var limitMs = (q.timeLimit || quiz.timeLimit) * 1000;
     var startAt = serverNow();
     getDb().ref('rooms/' + pin + '/meta').update({
@@ -121,15 +145,15 @@
   }
 
   function renderQuestion() {
-    var q = quiz.questions[qIndex];
+    var d = dispQ(qIndex), q = d.q;
     show('scr-question');
     $('q-num').textContent = 'Q' + (qIndex + 1) + ' / ' + quiz.questions.length;
     if (q.image) { $('q-image').style.display = 'block'; $('q-image').querySelector('img').src = q.image; }
     else $('q-image').style.display = 'none';
     $('q-prompt').textContent = q.prompt;
     $('q-choices').className = 'choices' + (q.choices.join('').length < 40 ? ' grid2' : '');
-    $('q-choices').innerHTML = q.choices.map(function (c, i) {
-      return '<button class="choice" disabled><span class="mark">' + MARKS[i] + '</span>' + esc(c) + '</button>';
+    $('q-choices').innerHTML = d.map.map(function (orig, i) {
+      return '<button class="choice" disabled><span class="mark">' + MARKS[i] + '</span>' + esc(q.choices[orig]) + '</button>';
     }).join('');
     startTimer(q);
     updateAnswerCount();
@@ -185,7 +209,7 @@
     clearInterval(timerIv);
     if (answersRef) answersRef.off();
 
-    var q = quiz.questions[qIndex];
+    var q = dispQ(qIndex).q;
     var limitMs = (q.timeLimit || quiz.timeLimit) * 1000;
     var gains = {}, updates = {};
     for (var pid2 in answersCache) {
@@ -209,7 +233,7 @@
   }
 
   function renderReveal(counts, rate, top5) {
-    var q = quiz.questions[qIndex];
+    var d = dispQ(qIndex), q = d.q;
     show('scr-reveal');
     $('rv-num').textContent = 'Q' + (qIndex + 1) + ' 결과';
     if (q.image) { $('rv-image').style.display = 'block'; $('rv-image').querySelector('img').src = q.image; }
@@ -217,11 +241,12 @@
     $('rv-prompt').textContent = q.prompt;
     $('rv-rate').textContent = rate + '%';
     var total = counts.reduce(function (a, b) { return a + b; }, 0) || 1;
-    $('rv-dist').innerHTML = q.choices.map(function (c, i) {
-      return '<div class="dist-row' + (i === q.answer ? ' is-answer' : '') + '">'
+    // counts는 원본 선지 기준 → 화면 표시 순서(d.map)로 재배열
+    $('rv-dist').innerHTML = d.map.map(function (orig, i) {
+      return '<div class="dist-row' + (orig === q.answer ? ' is-answer' : '') + '">'
         + '<span class="lab">' + MARKS[i] + '</span>'
-        + '<span class="bar-wrap"><span class="bar" style="width:' + (counts[i] / total * 100) + '%; display:block"></span></span>'
-        + '<span class="cnt">' + counts[i] + '</span></div>';
+        + '<span class="bar-wrap"><span class="bar" style="width:' + (counts[orig] / total * 100) + '%; display:block"></span></span>'
+        + '<span class="cnt">' + counts[orig] + '</span></div>';
     }).join('');
     $('rv-top5').innerHTML = top5.map(function (r, i) {
       return '<div class="row"><span><span class="r">' + (i + 1) + '위</span>' + esc(r.nick) + '</span><span>' + r.score + '점</span></div>';
@@ -317,14 +342,17 @@
     }
     var ranks = window.GameCore.rank(room.players || {});
     var qids = quiz.questions.map(function (q) { return q.id; });
+    // 시트 열은 원본 문항 순서(id 순). answers/reveal은 표시 순서 키 → order로 역매핑
+    var order = (room.shuffle && room.shuffle.order) || quiz.questions.map(function (_, i) { return i; });
     var rows = ranks.map(function (r, i) {
       var p = room.players[r.pid];
       var row = [i + 1, p.name, p.school, p.nick, r.score];
       quiz.questions.forEach(function (q, qi) {
-        var a = room.answers && room.answers[qi] && room.answers[qi][r.pid];
-        var g = room.reveal && room.reveal[qi] && room.reveal[qi].gains ? (room.reveal[qi].gains[r.pid] || 0) : 0;
+        var di = order.indexOf(qi);
+        var a = room.answers && room.answers[di] && room.answers[di][r.pid];
+        var g = room.reveal && room.reveal[di] && room.reveal[di].gains ? (room.reveal[di].gains[r.pid] || 0) : 0;
         if (!a) row.push('-');
-        else if (a.choice === quiz.questions[qi].answer) row.push('O(' + g + ')');
+        else if (a.choice === q.answer) row.push('O(' + g + ')');
         else row.push('X(' + (a.choice + 1) + ')');
       });
       return row;

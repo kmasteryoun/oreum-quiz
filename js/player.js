@@ -36,7 +36,15 @@
   function serverNow() { return Date.now() + offset; }
 
   // 상태
-  var pin = null, quiz = null, meta = null;
+  var pin = null, quiz = null, meta = null, shuffle = null;
+
+  // 표시 인덱스 → 원본 문항 + 선지 매핑 (호스트가 방 생성 시 섞어서 공유)
+  function dispQ(i) {
+    var oi = shuffle ? shuffle.order[i] : i;
+    var q = quiz.questions[oi];
+    var map = shuffle ? shuffle.choices[oi] : q.choices.map(function (_, x) { return x; });
+    return { oi: oi, q: q, map: map };
+  }
   var pid = localStorage.getItem('oq_pid');
   if (!pid) { pid = 'p' + Math.random().toString(36).slice(2, 10); localStorage.setItem('oq_pid', pid); }
   var myNick = '', myAnswered = {}, timerIv = null;
@@ -49,6 +57,13 @@
     $('in-name').value = saved.name || '';
     $('in-school').value = saved.school || SCHOOLS[0];
     $('in-nick').value = saved.nick || '';
+  }
+
+  // QR 입장: ?pin=123456 이면 PIN 미리 입력하고 이름 칸에 포커스
+  var qrPin = new URLSearchParams(location.search).get('pin');
+  if (qrPin && /^[0-9]{6}$/.test(qrPin)) {
+    $('in-pin').value = qrPin;
+    setTimeout(function () { $('in-name').focus(); }, 100);
   }
 
   $('btn-join').addEventListener('click', function () {
@@ -80,7 +95,10 @@
       pRef.child('connected').onDisconnect().set(false);
       $('lobby-title').textContent = quiz.title;
       $('lobby-nick').textContent = '🙋 ' + nick;
-      listenMeta();
+      getDb().ref('rooms/' + pin + '/shuffle').once('value').then(function (ss) {
+        shuffle = ss.val();
+        listenMeta();
+      });
     }).catch(function (e) {
       errEl.textContent = '접속 오류: ' + e.message;
       $('btn-join').disabled = false;
@@ -101,7 +119,7 @@
 
   // ── 문제 ──
   function renderQuestion() {
-    var q = quiz.questions[meta.qIndex];
+    var d = dispQ(meta.qIndex), q = d.q;
     if (!q) return;
     show('scr-question');
     $('q-num').textContent = 'Q' + (meta.qIndex + 1) + ' / ' + quiz.questions.length;
@@ -119,19 +137,19 @@
     box.className = 'choices' + (q.src === 'short' && q.choices.join('').length < 40 ? ' grid2' : '');
     box.style.display = 'grid';
     var marks = ['①', '②', '③', '④', '⑤'];
-    q.choices.forEach(function (c, i) {
+    d.map.forEach(function (orig, i) {
       var b = document.createElement('button');
       b.className = 'choice';
-      b.innerHTML = '<span class="mark">' + marks[i] + '</span>' + esc(c);
-      b.addEventListener('click', function () { submit(q, i, b); });
+      b.innerHTML = '<span class="mark">' + marks[i] + '</span>' + esc(q.choices[orig]);
+      b.addEventListener('click', function () { submit(q, d, i); });
       box.appendChild(b);
     });
 
-    // 이미 제출한 문제(새로고침 재입장)면 잠금
-    if (myAnswered[meta.qIndex] !== undefined) { lock(myAnswered[meta.qIndex]); }
+    // 이미 제출한 문제(새로고침 재입장)면 잠금 (myAnswered는 원본 선지 인덱스)
+    if (myAnswered[meta.qIndex] !== undefined) { lock(d.map.indexOf(myAnswered[meta.qIndex])); }
     else {
       getDb().ref('rooms/' + pin + '/answers/' + meta.qIndex + '/' + pid).once('value').then(function (s) {
-        if (s.exists()) { myAnswered[meta.qIndex] = s.val().choice; lock(s.val().choice); }
+        if (s.exists()) { myAnswered[meta.qIndex] = s.val().choice; lock(d.map.indexOf(s.val().choice)); }
       });
     }
     startTimer(q);
@@ -146,15 +164,16 @@
     $('q-submitted').style.display = 'block';
   }
 
-  function submit(q, i) {
+  function submit(q, d, displayIdx) {
     if (myAnswered[meta.qIndex] !== undefined) return;
     var limitMs = (q.timeLimit || quiz.timeLimit) * 1000;
     var remain = Math.max(0, meta.qDeadline - serverNow());
-    myAnswered[meta.qIndex] = i;
+    var orig = d.map[displayIdx];             // 저장은 원본 선지 인덱스로
+    myAnswered[meta.qIndex] = orig;
     getDb().ref('rooms/' + pin + '/answers/' + meta.qIndex + '/' + pid).set({
-      choice: i, remainMs: remain, limitMs: limitMs
+      choice: orig, remainMs: remain, limitMs: limitMs
     });
-    lock(i);
+    lock(displayIdx);
   }
 
   function startTimer(q) {
@@ -177,7 +196,6 @@
   function renderReveal() {
     clearInterval(timerIv);
     show('scr-reveal');
-    var q = quiz.questions[meta.qIndex];
     getDb().ref('rooms/' + pin + '/reveal/' + meta.qIndex).once('value').then(function (snap) {
       var rv = snap.val();
       if (!rv) return;

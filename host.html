@@ -21,9 +21,17 @@
 <!-- 대기실 -->
 <div class="screen wide" id="scr-lobby">
   <div class="card pin-box">
-    <div class="url" id="lobby-url">접속 주소</div>
-    <div class="pin" id="lobby-pin"></div>
-    <div style="color:var(--muted)" id="lobby-quiz"></div>
+    <div class="lobby-flex">
+      <div>
+        <div class="url" id="lobby-url">접속 주소</div>
+        <div class="pin" id="lobby-pin"></div>
+        <div style="color:var(--muted)" id="lobby-quiz"></div>
+      </div>
+      <div class="qr-box">
+        <div id="lobby-qr"></div>
+        <div class="qr-cap">📱 QR 찍으면 바로 입장</div>
+      </div>
+    </div>
   </div>
   <div class="joined-count"><b id="lobby-count">0</b>명 입장</div>
   <div class="nick-grid" id="lobby-nicks"></div>
@@ -89,6 +97,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="js/config.js"></script>
 <script src="js/game-core.js"></script>
+<script src="js/vendor/qrcode.min.js"></script>
 <script src="data/hunmin.js"></script>
 <script src="data/yongbi.js"></script>
 <script src="data/sohak.js"></script>

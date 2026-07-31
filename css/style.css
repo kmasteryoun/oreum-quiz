@@ -55,6 +55,12 @@ input:focus, select:focus { outline: none; border-color: var(--primary); }
 .pin-box .url { font-size: 20px; color: var(--muted); }
 .pin-box .pin { font-size: 84px; font-weight: 900; letter-spacing: 10px; color: var(--primary); margin: 6px 0; }
 
+/* 대기실 QR */
+.lobby-flex { display: flex; align-items: center; justify-content: center; gap: 40px; flex-wrap: wrap; }
+.qr-box { background: #fff; border-radius: 14px; padding: 14px; box-shadow: 0 1px 6px rgba(0,0,0,.1); }
+.qr-box img, .qr-box canvas { display: block; }
+.qr-cap { font-size: 13px; color: var(--muted); text-align: center; margin-top: 8px; }
+
 /* 대기실 닉네임 그리드 */
 .nick-grid { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 12px; }
 .nick-chip { background: var(--card); border-radius: 20px; padding: 8px 16px; font-weight: 600; box-shadow: 0 1px 4px rgba(0,0,0,.08); animation: pop .25s ease; }

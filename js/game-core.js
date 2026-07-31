@@ -34,6 +34,26 @@
     return arr;
   };
 
+  // Fisher-Yates 셔플 (원본 보존, 새 배열 반환)
+  G.shuffle = function (arr, rnd) {
+    rnd = rnd || Math.random;
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(rnd() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  };
+
+  // 방 생성 시 1회 생성: 문항 순서 + 문항별 선지 순서 (전원 동일하게 공유)
+  G.makeShuffle = function (quiz, rnd) {
+    var order = G.shuffle(quiz.questions.map(function (_, i) { return i; }), rnd);
+    var choices = quiz.questions.map(function (q) {
+      return G.shuffle(q.choices.map(function (_, i) { return i; }), rnd);
+    });
+    return { order: order, choices: choices };
+  };
+
   if (typeof module !== 'undefined') module.exports = G;
   root.GameCore = G;
 })(this);
