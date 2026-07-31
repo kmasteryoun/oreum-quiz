@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>[오름] 복습 퀴즈 배틀</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- 입장 -->
+<div class="screen on" id="scr-join">
+  <div class="brand">[오름] 국어<span class="big">복습 퀴즈 배틀</span></div>
+  <div class="card">
+    <div class="notice" id="join-notice" style="display:none"></div>
+    <label>게임 PIN</label>
+    <input type="tel" id="in-pin" maxlength="6" placeholder="선생님 화면의 6자리 숫자" autocomplete="off">
+    <label>이름 (실명)</label>
+    <input type="text" id="in-name" placeholder="예: 홍길동" autocomplete="off">
+    <label>학교</label>
+    <select id="in-school"></select>
+    <label>닉네임 (화면에 표시될 이름)</label>
+    <input type="text" id="in-nick" maxlength="10" placeholder="예: 문법파괴자" autocomplete="off">
+    <button class="btn" id="btn-join">입장하기</button>
+    <div class="err" id="join-err"></div>
+  </div>
+</div>
+
+<!-- 대기실 -->
+<div class="screen" id="scr-lobby">
+  <div class="brand">[오름] 국어<span class="big" id="lobby-title"></span></div>
+  <div class="card" style="text-align:center">
+    <p style="font-size:20px; font-weight:800" id="lobby-nick"></p>
+    <p style="color:var(--muted); margin-top:8px">입장 완료! 게임이 곧 시작됩니다.</p>
+  </div>
+</div>
+
+<!-- 문제 -->
+<div class="screen" id="scr-question">
+  <div class="q-header">
+    <span class="q-num" id="q-num"></span>
+    <span class="q-timer" id="q-timer"></span>
+  </div>
+  <div class="timebar" id="q-timebar"><div></div></div>
+  <div class="q-image" id="q-image" style="display:none"><img src="" alt="단어"></div>
+  <div class="q-prompt" id="q-prompt"></div>
+  <div class="choices" id="q-choices"></div>
+  <div class="submitted" id="q-submitted" style="display:none">제출 완료! ⚡ 결과를 기다리세요</div>
+</div>
+
+<!-- 문제 결과 -->
+<div class="screen" id="scr-reveal">
+  <div class="result-big" id="rv-mark"></div>
+  <div class="result-pts" id="rv-pts"></div>
+  <div class="result-total" id="rv-total"></div>
+  <div class="card">
+    <p style="font-weight:800; margin-bottom:6px">🏆 현재 TOP 5</p>
+    <div class="top5" id="rv-top5"></div>
+  </div>
+</div>
+
+<!-- 순위 발표 중 -->
+<div class="screen" id="scr-podium">
+  <div class="brand">[오름] 국어<span class="big">결과 발표</span></div>
+  <div class="card" style="text-align:center">
+    <p style="font-size:18px">👀 앞 화면을 보세요!</p>
+    <p style="color:var(--muted); margin-top:10px" id="pd-mine"></p>
+  </div>
+</div>
+
+<!-- 종료 -->
+<div class="screen" id="scr-ended">
+  <div class="brand">[오름] 국어<span class="big">수고했어요! 🎉</span></div>
+  <div class="card" style="text-align:center">
+    <p id="end-mine" style="font-size:18px; font-weight:700"></p>
+    <p style="color:var(--muted); margin-top:10px">결과는 선생님이 확인 후 안내해 줄 거예요.</p>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="js/config.js"></script>
+<script src="js/game-core.js"></script>
+<script src="data/hunmin.js"></script>
+<script src="data/yongbi.js"></script>
+<script src="data/sohak.js"></script>
+<script src="js/player.js"></script>
+</body>
+</html>

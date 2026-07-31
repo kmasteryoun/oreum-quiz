@@ -1,0 +1,161 @@
+/* [오름] 복습 퀴즈 배틀 — 공용 스타일 */
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+:root {
+  --primary: #2F7D5B;
+  --primary-dark: #1F5940;
+  --accent: #FFC94A;
+  --bg: #F4F7F5;
+  --card: #FFFFFF;
+  --text: #1E2A24;
+  --muted: #7A8880;
+  --red: #E05555;
+  --blue: #3B7DDD;
+  --choice-a: #E05555;
+  --choice-b: #3B7DDD;
+  --choice-c: #E8A33D;
+  --choice-d: #2F9D6B;
+  --choice-e: #8B5CD6;
+}
+html, body { height: 100%; }
+body {
+  font-family: 'Pretendard', 'Malgun Gothic', -apple-system, sans-serif;
+  background: var(--bg); color: var(--text);
+  display: flex; flex-direction: column; align-items: center;
+  min-height: 100dvh;
+}
+.screen { display: none; width: 100%; max-width: 560px; padding: 20px; flex: 1; flex-direction: column; }
+.screen.on { display: flex; }
+.wide { max-width: 1100px; }
+
+.brand { text-align: center; margin: 24px 0 8px; font-weight: 800; color: var(--primary); letter-spacing: 1px; }
+.brand .big { font-size: 28px; display: block; margin-top: 4px; color: var(--text); }
+
+.card { background: var(--card); border-radius: 16px; padding: 20px; box-shadow: 0 2px 10px rgba(30,42,36,.07); margin-bottom: 14px; }
+
+label { font-size: 13px; color: var(--muted); display: block; margin: 10px 0 4px; }
+input[type=text], input[type=tel], select {
+  width: 100%; padding: 13px 14px; font-size: 16px;
+  border: 1.5px solid #D7E0DB; border-radius: 10px; background: #fff;
+}
+input:focus, select:focus { outline: none; border-color: var(--primary); }
+
+.btn {
+  display: block; width: 100%; padding: 15px; margin-top: 14px;
+  font-size: 17px; font-weight: 700; color: #fff; background: var(--primary);
+  border: none; border-radius: 12px; cursor: pointer;
+}
+.btn:active { background: var(--primary-dark); }
+.btn:disabled { background: #B9C7C0; cursor: default; }
+.btn.ghost { background: #fff; color: var(--primary); border: 1.5px solid var(--primary); }
+
+.err { color: var(--red); font-size: 14px; margin-top: 8px; min-height: 18px; }
+
+/* PIN 표시 (호스트) */
+.pin-box { text-align: center; padding: 26px 20px; }
+.pin-box .url { font-size: 20px; color: var(--muted); }
+.pin-box .pin { font-size: 84px; font-weight: 900; letter-spacing: 10px; color: var(--primary); margin: 6px 0; }
+
+/* 대기실 닉네임 그리드 */
+.nick-grid { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 12px; }
+.nick-chip { background: var(--card); border-radius: 20px; padding: 8px 16px; font-weight: 600; box-shadow: 0 1px 4px rgba(0,0,0,.08); animation: pop .25s ease; }
+@keyframes pop { from { transform: scale(.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.joined-count { text-align: center; font-size: 22px; margin-top: 14px; }
+.joined-count b { color: var(--primary); font-size: 30px; }
+
+/* 문제 화면 */
+.q-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.q-num { font-weight: 800; color: var(--muted); }
+.q-timer { font-size: 26px; font-weight: 900; color: var(--primary); min-width: 52px; text-align: right; }
+.q-timer.hurry { color: var(--red); }
+.timebar { height: 8px; border-radius: 4px; background: #DDE6E0; overflow: hidden; margin-bottom: 14px; }
+.timebar > div { height: 100%; background: var(--primary); border-radius: 4px; transition: width .2s linear; }
+.timebar.hurry > div { background: var(--red); }
+
+.q-image { text-align: center; background: #fff; border-radius: 12px; padding: 14px; margin-bottom: 12px; box-shadow: 0 1px 5px rgba(0,0,0,.06); }
+.q-image img { max-width: 100%; max-height: 110px; }
+.q-prompt { font-size: 17px; font-weight: 700; line-height: 1.5; white-space: pre-line; margin-bottom: 14px; }
+
+.choices { display: grid; gap: 10px; }
+.choices.grid2 { grid-template-columns: 1fr 1fr; }
+.choice {
+  position: relative; padding: 16px 14px 16px 44px; border-radius: 12px; border: none;
+  font-size: 16px; font-weight: 600; color: #fff; text-align: left; cursor: pointer;
+  line-height: 1.35; word-break: keep-all;
+}
+.choice .mark { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-weight: 900; opacity: .85; }
+.choice:nth-child(1) { background: var(--choice-a); }
+.choice:nth-child(2) { background: var(--choice-b); }
+.choice:nth-child(3) { background: var(--choice-c); }
+.choice:nth-child(4) { background: var(--choice-d); }
+.choice:nth-child(5) { background: var(--choice-e); }
+.choice.picked { outline: 4px solid var(--accent); }
+.choice.dim { opacity: .35; }
+.choice.correct { outline: 4px solid #17301F; box-shadow: 0 0 0 4px var(--accent); }
+.choice:disabled { cursor: default; }
+
+.submitted { text-align: center; font-size: 20px; font-weight: 800; color: var(--primary); padding: 30px 0; }
+
+/* 결과(reveal) */
+.result-big { text-align: center; font-size: 34px; font-weight: 900; margin: 18px 0 6px; }
+.result-big.o { color: var(--primary); }
+.result-big.x { color: var(--red); }
+.result-pts { text-align: center; font-size: 20px; margin-bottom: 4px; }
+.result-total { text-align: center; color: var(--muted); margin-bottom: 14px; }
+
+.dist { margin-top: 10px; }
+.dist-row { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
+.dist-row .lab { width: 30px; font-weight: 800; text-align: center; color: #fff; border-radius: 6px; padding: 3px 0; font-size: 14px; }
+.dist-row:nth-child(1) .lab { background: var(--choice-a); }
+.dist-row:nth-child(2) .lab { background: var(--choice-b); }
+.dist-row:nth-child(3) .lab { background: var(--choice-c); }
+.dist-row:nth-child(4) .lab { background: var(--choice-d); }
+.dist-row:nth-child(5) .lab { background: var(--choice-e); }
+.dist-row .bar-wrap { flex: 1; background: #E7EEE9; border-radius: 6px; height: 22px; position: relative; }
+.dist-row .bar { height: 100%; border-radius: 6px; background: var(--primary); min-width: 2px; transition: width .5s ease; }
+.dist-row.is-answer .bar { background: var(--accent); }
+.dist-row .cnt { width: 34px; text-align: right; font-weight: 700; font-size: 14px; }
+.dist-row.is-answer .cnt::after { content: ' ✔'; color: var(--primary); }
+
+.top5 { margin-top: 8px; }
+.top5 .row { display: flex; justify-content: space-between; padding: 8px 12px; border-radius: 10px; margin: 5px 0; background: #F0F5F2; font-weight: 700; }
+.top5 .row .r { color: var(--muted); margin-right: 8px; }
+.top5 .row.me { background: var(--accent); }
+
+/* 포디움 */
+.podium-list { margin-top: 16px; }
+.podium-row {
+  display: flex; align-items: center; gap: 14px; background: var(--card);
+  border-radius: 14px; padding: 18px 20px; margin: 10px 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,.08); animation: pop .4s ease; cursor: pointer;
+}
+.podium-row .rank { font-size: 26px; font-weight: 900; color: var(--muted); width: 56px; }
+.podium-row.r1 { transform: scale(1.05); border: 3px solid var(--accent); }
+.podium-row.r1 .rank { color: #D9A400; }
+.podium-row.r2 .rank { color: #8FA3AC; }
+.podium-row.r3 .rank { color: #B07C4F; }
+.podium-row .nick { flex: 1; font-size: 22px; font-weight: 800; }
+.podium-row .nick .real { color: var(--primary); }
+.podium-row .score { font-size: 20px; font-weight: 800; color: var(--primary); }
+.podium-hint { text-align: center; color: var(--muted); font-size: 13px; margin-top: 10px; }
+
+.host-foot { display: flex; gap: 10px; margin-top: auto; padding-top: 14px; }
+.host-foot .btn { margin-top: 0; }
+.answer-count { text-align: center; font-size: 18px; margin-top: 12px; color: var(--muted); }
+.answer-count b { color: var(--primary); font-size: 24px; }
+
+.quiz-cards { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); margin-top: 18px; }
+.quiz-card { background: var(--card); border-radius: 16px; padding: 26px 22px; cursor: pointer; border: 2px solid transparent; box-shadow: 0 2px 10px rgba(0,0,0,.06); text-align: center; }
+.quiz-card:hover { border-color: var(--primary); }
+.quiz-card h3 { font-size: 22px; margin-bottom: 6px; }
+.quiz-card p { color: var(--muted); font-size: 14px; }
+
+.notice { background: #FFF6DF; border: 1px solid #F0DFA8; color: #7A6420; border-radius: 10px; padding: 12px 14px; font-size: 14px; margin-bottom: 12px; }
+
+.rate-line { text-align: center; font-size: 18px; font-weight: 700; margin: 8px 0 2px; }
+.rate-line b { color: var(--primary); font-size: 24px; }
+
+@media (max-width: 480px) {
+  .q-prompt { font-size: 15.5px; }
+  .choice { font-size: 15px; padding: 14px 12px 14px 40px; }
+  .pin-box .pin { font-size: 56px; letter-spacing: 6px; }
+}

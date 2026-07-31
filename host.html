@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>[오름] 복습 퀴즈 배틀 — 호스트</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- 퀴즈 선택 -->
+<div class="screen wide on" id="scr-select">
+  <div class="brand">[오름] 국어<span class="big">복습 퀴즈 배틀 — 호스트</span></div>
+  <div class="notice" id="host-notice" style="display:none"></div>
+  <div class="notice" id="resume-box" style="display:none">
+    진행 중이던 게임이 있습니다. <button class="btn ghost" id="btn-resume" style="width:auto; display:inline-block; padding:8px 16px; margin:0 0 0 10px">이어서 진행</button>
+  </div>
+  <div class="quiz-cards" id="quiz-cards"></div>
+</div>
+
+<!-- 대기실 -->
+<div class="screen wide" id="scr-lobby">
+  <div class="card pin-box">
+    <div class="url" id="lobby-url">접속 주소</div>
+    <div class="pin" id="lobby-pin"></div>
+    <div style="color:var(--muted)" id="lobby-quiz"></div>
+  </div>
+  <div class="joined-count"><b id="lobby-count">0</b>명 입장</div>
+  <div class="nick-grid" id="lobby-nicks"></div>
+  <div class="host-foot">
+    <button class="btn" id="btn-start" disabled>게임 시작</button>
+  </div>
+</div>
+
+<!-- 문제 (프로젝터 = 학생과 동일 화면) -->
+<div class="screen wide" id="scr-question">
+  <div class="q-header">
+    <span class="q-num" id="q-num"></span>
+    <span class="q-timer" id="q-timer"></span>
+  </div>
+  <div class="timebar" id="q-timebar"><div></div></div>
+  <div class="q-image" id="q-image" style="display:none"><img src="" alt="단어" style="max-height:150px"></div>
+  <div class="q-prompt" id="q-prompt" style="font-size:22px"></div>
+  <div class="choices" id="q-choices"></div>
+  <div class="answer-count">응답 <b id="q-answered">0</b> / <span id="q-total">0</span></div>
+</div>
+
+<!-- 문제 결과 -->
+<div class="screen wide" id="scr-reveal">
+  <div class="q-header">
+    <span class="q-num" id="rv-num"></span>
+  </div>
+  <div class="q-image" id="rv-image" style="display:none"><img src="" alt="단어" style="max-height:120px"></div>
+  <div class="q-prompt" id="rv-prompt" style="font-size:20px"></div>
+  <div class="card">
+    <div class="rate-line">정답률 <b id="rv-rate"></b></div>
+    <div class="dist" id="rv-dist"></div>
+  </div>
+  <div class="card">
+    <p style="font-weight:800; margin-bottom:6px">🏆 현재 TOP 5</p>
+    <div class="top5" id="rv-top5"></div>
+  </div>
+  <div class="host-foot">
+    <button class="btn" id="btn-next">다음 문제 ▶</button>
+  </div>
+</div>
+
+<!-- 순위 발표 -->
+<div class="screen wide" id="scr-podium">
+  <div class="brand">[오름] 국어<span class="big">🏆 최종 순위 발표</span></div>
+  <div class="podium-list" id="pd-list"></div>
+  <p class="podium-hint" id="pd-hint">버튼을 눌러 5위부터 공개하세요. 공개된 닉네임을 클릭하면 실명이 나옵니다.</p>
+  <div class="host-foot">
+    <button class="btn" id="btn-reveal-next">다음 순위 공개</button>
+    <button class="btn ghost" id="btn-finish" style="display:none">게임 종료 + 결과 저장</button>
+  </div>
+</div>
+
+<!-- 종료 -->
+<div class="screen wide" id="scr-ended">
+  <div class="brand">[오름] 국어<span class="big">게임 종료 🎉</span></div>
+  <div class="card" style="text-align:center">
+    <p id="end-msg" style="font-size:17px">결과가 저장되었습니다.</p>
+    <button class="btn ghost" id="btn-new" style="margin-top:16px">새 게임 만들기</button>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="js/config.js"></script>
+<script src="js/game-core.js"></script>
+<script src="data/hunmin.js"></script>
+<script src="data/yongbi.js"></script>
+<script src="data/sohak.js"></script>
+<script src="js/host.js"></script>
+</body>
+</html>
