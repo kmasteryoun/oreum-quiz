@@ -189,13 +189,7 @@
     answersRef.on('value', function (snap) {
       answersCache = snap.val() || {};
       updateAnswerCount();
-      // 전원 응답 시 조기 종료
-      var connected = 0;
-      for (var k in players) if (players[k].connected !== false) connected++;
-      var n = Object.keys(answersCache).length;
-      if (connected > 0 && n >= connected && $('scr-question').classList.contains('on')) {
-        endQuestion();
-      }
+      // 전원 응답해도 자동으로 넘어가지 않음 — 타이머 종료 또는 [결과 보기] 버튼으로만 종료
     });
   }
 
@@ -320,6 +314,10 @@
     $('btn-reveal-next').style.display = done ? 'none' : 'block';
     $('btn-finish').style.display = done ? 'block' : 'none';
   }
+
+  $('btn-end-question').addEventListener('click', function () {
+    if ($('scr-question').classList.contains('on')) endQuestion();
+  });
 
   $('btn-reveal-next').addEventListener('click', function () {
     revealedCount++;
