@@ -46,7 +46,7 @@
   }
 
   // ── 퀴즈 선택 화면 ──
-  ['hunmin', 'yongbi', 'sohak'].forEach(function (id) {
+  ['hunmin', 'yongbi', 'sohak', 'matchum'].forEach(function (id) {
     var qz = window.QUIZZES[id];
     var card = document.createElement('div');
     card.className = 'quiz-card';
